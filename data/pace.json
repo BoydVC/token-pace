@@ -1,0 +1,145 @@
+{
+  "app": "token-pace",
+  "title": "Token Pace Gauge",
+  "generatedAt": "2026-10-10T13:21:54-0400",
+  "timezone": "America/New_York",
+  "sourceFile": "/workspace/tokenmax/usage.json",
+  "reading": {
+    "used_pct": 4.0,
+    "checked_at": "2026-10-10T13:16-04:00",
+    "label": "Grok Bot weekly included usage",
+    "cursor_models_pct": 1,
+    "other_models_pct": 0,
+    "monthly_reset": "2026-10-20",
+    "on_demand": "disabled",
+    "account": "Christopher Boyd Ultra",
+    "source": "Cursor spending dashboard (hard-reloaded by TokenMax daily-usage-check)",
+    "reset_note": "Dashboard Sat Oct 10 ~01:16 PM ET after hard reload: Grok Bot weekly 4% used, Resets Oct 15 (6 days left). Cursor Models 1%, Other Models 0%, monthly reset Oct 20. On-demand disabled. Pace target ~23.5% (24.75% of week since Thu 7:42 PM reset × 95%). Behind by ~19.5 pts."
+  },
+  "pace": {
+    "cap_pct": 95.0,
+    "target_pct": 23.56,
+    "gap_pts": 19.56,
+    "status": "BEHIND",
+    "week_elapsed_pct": 24.8,
+    "elapsed_hours": 41.67,
+    "remaining_hours": 126.33,
+    "week_hours": 168.0,
+    "projected_eow_pct": 16.13,
+    "projection_note": "linear from used_pct / hours-since-last-reset × 168h",
+    "required_pts_per_hour": 0.72,
+    "required_pts_per_day": 17.28,
+    "formula": "target = (hours_since_last_reset / 168) × 95"
+  },
+  "window": {
+    "last_reset": "2026-10-08T19:42:00-0400",
+    "next_reset": "2026-10-15T19:42:00-0400",
+    "reset_clock": "19:42 ET Thursdays",
+    "now_frac": 0.248,
+    "day_ticks": [
+      {
+        "date": "2026-10-08",
+        "label": "Thu 8",
+        "frac": 0.0
+      },
+      {
+        "date": "2026-10-09",
+        "label": "Fri 9",
+        "frac": 0.0256
+      },
+      {
+        "date": "2026-10-10",
+        "label": "Sat 10",
+        "frac": 0.1685
+      },
+      {
+        "date": "2026-10-11",
+        "label": "Sun 11",
+        "frac": 0.3113
+      },
+      {
+        "date": "2026-10-12",
+        "label": "Mon 12",
+        "frac": 0.4542
+      },
+      {
+        "date": "2026-10-13",
+        "label": "Tue 13",
+        "frac": 0.597
+      },
+      {
+        "date": "2026-10-14",
+        "label": "Wed 14",
+        "frac": 0.7399
+      },
+      {
+        "date": "2026-10-15",
+        "label": "Thu 15",
+        "frac": 0.8827
+      },
+      {
+        "date": "2026-10-16",
+        "label": "Fri 16",
+        "frac": 1.0
+      }
+    ],
+    "markers": [
+      {
+        "id": "last_reset",
+        "label": "Last reset",
+        "at": "2026-10-08T19:42:00-0400",
+        "kind": "reset"
+      },
+      {
+        "id": "now",
+        "label": "Now",
+        "at": "2026-10-10T13:21:54-0400",
+        "kind": "now"
+      },
+      {
+        "id": "next_reset",
+        "label": "Next reset",
+        "at": "2026-10-15T19:42:00-0400",
+        "kind": "reset"
+      }
+    ]
+  },
+  "history": {
+    "count": 3,
+    "points": [
+      {
+        "t": "2026-10-10T08:20-04:00",
+        "used_pct": 3.0,
+        "target_pct": 23.49,
+        "status": "BEHIND"
+      },
+      {
+        "t": null,
+        "used_pct": 4,
+        "target_pct": 23.5,
+        "status": null
+      },
+      {
+        "t": "2026-10-10T13:16-04:00",
+        "used_pct": 4.0,
+        "target_pct": 23.52,
+        "status": "BEHIND"
+      }
+    ],
+    "note": null,
+    "path": "data/history.jsonl"
+  },
+  "explainer": {
+    "title": "How pacing works",
+    "bullets": [
+      "Grok Bot weekly included pool resets every Thursday ~7:42 PM ET (168-hour window).",
+      "Straight-line target burns toward 95% by reset — leaving a small buffer, not racing to 100%.",
+      "target% = (hours since last reset ÷ 168) × 95.",
+      "Status: BEHIND if used% is more than ~1 pt under target; AHEAD if more than ~1 pt over; else ON PACE.",
+      "gap_pts = target% − used% (positive means behind — need more burn).",
+      "Projected end-of-week % assumes today's average burn rate continues to next reset.",
+      "Numbers come only from /workspace/tokenmax/usage.json + this app's history.jsonl — never invented.",
+      "On-demand is never enabled by this tool; it only reports the dashboard value."
+    ]
+  }
+}

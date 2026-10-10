@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Token Pace Gauge · Boyd</title>
+<style>
+:root{
+  --bg:#05080f;--card:#0b1220;--card2:#101a2e;--line:#1e2a44;--ink:#e8eefc;--dim:#8490b0;
+  --acc:#6c8cff;--cyan:#2ee6d6;--ok:#2fd27a;--warn:#ffb020;--hot:#ff5a4a;--gold:#ffc940;
+  --violet:#8b6cff;--glow:rgba(46,230,214,.22);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  color:var(--ink);
+  font:15px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  background:
+    radial-gradient(1000px 520px at 12% -10%,#1a2858 0,transparent 55%),
+    radial-gradient(800px 480px at 95% 0%,#1a1038 0,transparent 50%),
+    radial-gradient(700px 420px at 50% 110%,#0a2a28 0,transparent 55%),
+    var(--bg);
+}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 72px}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+h1{margin:0;font-size:34px;letter-spacing:-.7px;font-weight:850}
+h1 b{background:linear-gradient(100deg,#2ee6d6,#6c8cff 45%,#ffc940);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--dim);margin:6px 0 0;max-width:640px;font-size:14px}
+.chip{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;
+  font-weight:800;letter-spacing:.4px;font-size:13px;border:1px solid transparent;
+  font-variant-numeric:tabular-nums;white-space:nowrap
+}
+.chip.behind{background:rgba(255,90,74,.14);color:#ffb0a8;border-color:rgba(255,90,74,.4);box-shadow:0 0 24px rgba(255,90,74,.18)}
+.chip.ahead{background:rgba(47,210,122,.14);color:#9aecc0;border-color:rgba(47,210,122,.4);box-shadow:0 0 24px rgba(47,210,122,.15)}
+.chip.onpace{background:rgba(46,230,214,.12);color:#9af0e8;border-color:rgba(46,230,214,.4);box-shadow:0 0 24px rgba(46,230,214,.15)}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.hero{
+  display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-bottom:16px
+}
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.035),transparent),var(--card);
+  border:1px solid var(--line);border-radius:20px;padding:18px 20px;
+  box-shadow:0 12px 40px rgba(0,0,0,.28);position:relative;overflow:hidden
+}
+.card::before{
+  content:"";position:absolute;inset:-40% auto auto -20%;width:60%;height:70%;
+  background:radial-gradient(circle,var(--glow),transparent 70%);pointer-events:none
+}
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:340px}
+.gauge-svg{width:min(100%,420px);height:auto;filter:drop-shadow(0 0 18px rgba(46,230,214,.12))}
+.gauge-readout{text-align:center;margin-top:-28px;position:relative;z-index:2}
+.gauge-readout .big{
+  font-size:56px;font-weight:900;letter-spacing:-1.5px;font-variant-numeric:tabular-nums;line-height:1;
+  background:linear-gradient(180deg,#fff,#b8c4e8);-webkit-background-clip:text;background-clip:text;color:transparent
+}
+.gauge-readout .unit{font-size:18px;color:var(--dim);font-weight:700;margin-left:2px}
+.gauge-readout .meta{color:var(--dim);font-size:13px;margin-top:6px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;height:100%}
+.stat{
+  background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;
+  display:flex;flex-direction:column;justify-content:center
+}
+.stat .l{color:var(--dim);font-size:11.5px;text-transform:uppercase;letter-spacing:.55px;font-weight:650}
+.stat .v{font-size:26px;font-weight:850;margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:-.4px}
+.stat .h{font-size:12px;color:#a8b4d4;margin-top:3px}
+.stat.wide{grid-column:1/-1}
+.countdown .v{color:var(--cyan)}
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;flex-wrap:wrap}
+.section-title h2{margin:0;font-size:17px;letter-spacing:-.2px}
+.tag{font-size:11px;padding:3px 9px;border-radius:999px;background:rgba(108,140,255,.15);color:#b8c8ff;border:1px solid rgba(108,140,255,.3)}
+.timeline{position:relative;padding:28px 8px 8px;margin-top:4px}
+.tl-track{
+  position:relative;height:14px;border-radius:999px;
+  background:linear-gradient(90deg,#152038,#1a2a48 40%,#12353a);
+  border:1px solid #2a3a5a;overflow:visible
+}
+.tl-fill{
+  position:absolute;left:0;top:0;bottom:0;border-radius:999px;
+  background:linear-gradient(90deg,#2ee6d6,#6c8cff 70%,#8b6cff);
+  box-shadow:0 0 16px rgba(46,230,214,.35)
+}
+.tl-now{
+  position:absolute;top:-8px;width:3px;height:30px;background:#fff;border-radius:2px;
+  box-shadow:0 0 10px rgba(255,255,255,.6);transform:translateX(-50%)
+}
+.tl-now::after{
+  content:attr(data-label);position:absolute;top:-22px;left:50%;transform:translateX(-50%);
+  font-size:11px;font-weight:800;color:#fff;white-space:nowrap;letter-spacing:.3px
+}
+.tl-marks{display:flex;justify-content:space-between;margin-top:10px;color:var(--dim);font-size:11.5px}
+.tl-days{display:flex;position:relative;height:28px;margin-top:6px}
+.tl-day{position:absolute;transform:translateX(-50%);font-size:10.5px;color:#6e7a9a;text-align:center}
+.tl-day span{display:block;width:1px;height:8px;background:#2a3a5a;margin:0 auto 3px}
+.spark-wrap{height:160px;position:relative}
+.spark-svg{width:100%;height:100%;display:block}
+.spark-empty{
+  display:flex;align-items:center;justify-content:center;height:140px;color:var(--dim);
+  border:1px dashed #2a3a5a;border-radius:12px;padding:16px;text-align:center;font-size:13.5px;line-height:1.5
+}
+.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.kpi{
+  background:linear-gradient(180deg,rgba(255,255,255,.03),transparent),var(--card2);
+  border:1px solid var(--line);border-radius:16px;padding:14px 16px
+}
+.kpi .n{font-size:28px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.kpi .l{color:var(--dim);font-size:12px;margin-top:2px}
+.explainer ul{margin:8px 0 0;padding-left:18px;color:#c4cee8}
+.explainer li{margin:7px 0;font-size:13.5px}
+.explainer code{background:rgba(46,230,214,.1);color:var(--cyan);padding:1px 6px;border-radius:5px;font-size:12.5px}
+.math-box{
+  margin-top:12px;padding:12px 14px;border-radius:12px;background:rgba(0,0,0,.28);
+  border:1px solid #243454;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12.5px;color:#b8c8e8;line-height:1.55
+}
+.foot{color:var(--dim);font-size:12px;text-align:center;margin-top:20px}
+.note{color:#9aa6c4;font-size:12.5px;margin-top:8px;line-height:1.45}
+.pulse{animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+@media (max-width:960px){
+  .hero,.grid2{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  h1{font-size:28px}
+  .gauge-readout .big{font-size:46px}
+}
+@media (max-width:520px){
+  .wrap{padding:14px 10px 48px}
+  .stats,.grid3{grid-template-columns:1fr}
+  .stat.wide{grid-column:auto}
+  .chip{font-size:12px;padding:7px 11px}
+}
+/* share / card mode */
+body.cardmode{width:1200px;height:675px;overflow:hidden;background:#05080f}
+.sc{width:1200px;height:675px;padding:36px 48px;position:relative;
+  background:
+    radial-gradient(900px 500px at 0 0,#1a3a68 0,transparent 55%),
+    radial-gradient(700px 480px at 100% 100%,#3a1840 0,transparent 55%),#05080f}
+.sc h1{font-size:44px}.sc .row{display:flex;gap:18px;margin-top:22px}
+.sc .box{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px 20px}
+.sc .box .n{font-size:48px;font-weight:900;font-variant-numeric:tabular-nums}
+.sc .box .l{color:#b0bcd8;margin-top:4px}
+.sc .ft{position:absolute;left:48px;right:48px;bottom:28px;display:flex;justify-content:space-between;color:var(--dim);font-size:14px}
+</style>
+</head>
+<body>
+<div id="app" class="wrap">Loading Token Pace Gauge…</div>
+<script>
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt1 = n => (Number(n)||0).toLocaleString('en-US',{maximumFractionDigits:1,minimumFractionDigits:0});
+const fmt2 = n => (Number(n)||0).toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:0});
+const q = new URLSearchParams(location.search);
+
+async function load(){
+  if(window.__DATA__) return window.__DATA__;
+  const r = await fetch('data/pace.json',{cache:'no-store'});
+  if(!r.ok) throw new Error('pace.json '+r.status);
+  return r.json();
+}
+
+function parseET(s){
+  if(!s) return null;
+  // Accept +0400 / -04:00 / Z
+  let t = String(s).trim();
+  if(/[+-]\d{4}$/.test(t)) t = t.slice(0,-5)+t.slice(-5,-2)+':'+t.slice(-2);
+  const d = new Date(t);
+  return isNaN(d) ? null : d;
+}
+
+function countdownParts(ms){
+  if(ms < 0) ms = 0;
+  const s = Math.floor(ms/1000);
+  const d = Math.floor(s/86400);
+  const h = Math.floor((s%86400)/3600);
+  const m = Math.floor((s%3600)/60);
+  const sec = s%60;
+  return {d,h,m,sec, text: `${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(sec).padStart(2,'0')}s`};
+}
+
+function statusClass(st){
+  if(st === 'BEHIND') return 'behind';
+  if(st === 'AHEAD') return 'ahead';
+  return 'onpace';
+}
+
+function polar(cx,cy,r,deg){
+  // deg: 180 = left, 0 = right (SVG y down) — we use math angle from +x, but arc goes left→right via top
+  const rad = (Math.PI/180)*deg;
+  return [cx + r*Math.cos(rad), cy + r*Math.sin(rad)];
+}
+
+/** Map 0..100% onto semicircle from 180° (left) to 0° (right), upper half (negative Y in SVG = up via sin of 180→0 through 90? Wait)
+ * Standard: angle 180° = left, 90° = top? In screen coords sin(90)=1 is DOWN.
+ * So for UPPER arc: use angles from π to 0 in math coords flipped: angle from 180 to 0 where y = -sin.
+ */
+function pctToAngle(pct){
+  const p = Math.max(0, Math.min(100, pct))/100;
+  // 180° → 0° sweeping through top: use (180 - 180*p)
+  return 180 - 180*p;
+}
+
+function arcPath(cx,cy,r,pct){
+  const a0 = 180, a1 = pctToAngle(pct);
+  const [x0,y0] = [cx + r*Math.cos(a0*Math.PI/180), cy - r*Math.sin(a0*Math.PI/180)];
+  const [x1,y1] = [cx + r*Math.cos(a1*Math.PI/180), cy - r*Math.sin(a1*Math.PI/180)];
+  const large = (a0-a1) > 180 ? 1 : 0;
+  // sweep-flag 1 = clockwise in SVG when y grows down... with our y=-sin mapping, going 180→0 via top is clockwise in screen? 
+  // 180 left → 90 top → 0 right: in SVG that's counterclockwise if y is up-math, but we negated sin so top is smaller y = counterclockwise still via sweep 1?
+  // Use sweep=1 for going left-to-right over the top with y = cy - r*sin(theta) where theta 180→0.
+  return `M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1}`;
+}
+
+function needleXY(cx,cy,r,pct){
+  const a = pctToAngle(pct);
+  return [cx + r*Math.cos(a*Math.PI/180), cy - r*Math.sin(a*Math.PI/180)];
+}
+
+function renderGauge(used, target, animPct){
+  const cx=210, cy=200, r=150, rInner=118;
+  const track = arcPath(cx,cy,r,100);
+  const usedArc = arcPath(cx,cy,r,animPct);
+  const [tx,ty] = needleXY(cx,cy,r+6, target);
+  const [nx,ny] = needleXY(cx,cy,r-8, animPct);
+  const color = animPct + 1 < target ? '#ff5a4a' : (animPct > target + 1 ? '#2fd27a' : '#2ee6d6');
+  return `<svg class="gauge-svg" viewBox="0 0 420 240" role="img" aria-label="Pace gauge ${fmt1(used)} percent used versus ${fmt1(target)} percent target">
+    <defs>
+      <linearGradient id="gUsed" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#2ee6d6"/><stop offset="55%" stop-color="#6c8cff"/><stop offset="100%" stop-color="${color}"/>
+      </linearGradient>
+      <filter id="glow"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <path d="${track}" fill="none" stroke="#1a2744" stroke-width="22" stroke-linecap="round"/>
+    <path d="${usedArc}" fill="none" stroke="url(#gUsed)" stroke-width="22" stroke-linecap="round" filter="url(#glow)"/>
+    <!-- target tick -->
+    <circle cx="${tx}" cy="${ty}" r="7" fill="#ffc940" stroke="#1a1400" stroke-width="2"/>
+    <text x="${tx}" y="${ty-14}" text-anchor="middle" fill="#ffc940" font-size="11" font-weight="800">TARGET ${fmt1(target)}%</text>
+    <!-- needle -->
+    <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="#eef2ff" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="10" fill="#0b1220" stroke="#6c8cff" stroke-width="3"/>
+    <circle cx="${cx}" cy="${cy}" r="4" fill="#2ee6d6"/>
+    <text x="40" y="228" fill="#6e7a9a" font-size="11">0%</text>
+    <text x="200" y="48" fill="#6e7a9a" font-size="11" text-anchor="middle">50%</text>
+    <text x="380" y="228" fill="#6e7a9a" font-size="11" text-anchor="end">100%</text>
+  </svg>`;
+}
+
+function sparkSVG(points, nowTarget){
+  if(!points || points.length < 1){
+    return `<div class="spark-empty">No burn history yet on disk. Each collect appends the live <code>usage.json</code> reading to <code>data/history.jsonl</code> — the chart fills after the next daily checks.</div>`;
+  }
+  const W=720, H=160, pad=28;
+  const xs = points.map((p,i)=> i);
+  const used = points.map(p=> Number(p.used_pct)||0);
+  const targets = points.map(p=> p.target_pct != null ? Number(p.target_pct) : null);
+  const maxY = Math.max(30, ...used, ...targets.filter(v=>v!=null), nowTarget||0) * 1.15;
+  const minX = 0, maxX = Math.max(1, points.length-1);
+  const xAt = i => pad + (i-minX)/(maxX-minX||1)*(W-2*pad);
+  const yAt = v => H-pad - (v/maxY)*(H-2*pad);
+  let usedLine = '';
+  points.forEach((p,i)=>{
+    const x=xAt(i), y=yAt(used[i]);
+    usedLine += (i? 'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' ';
+  });
+  let tgtLine = '';
+  let hasT = false;
+  points.forEach((p,i)=>{
+    if(targets[i]==null) return;
+    const x=xAt(i), y=yAt(targets[i]);
+    tgtLine += (hasT? 'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' ';
+    hasT = true;
+  });
+  const dots = points.map((p,i)=>`<circle cx="${xAt(i)}" cy="${yAt(used[i])}" r="4.5" fill="#2ee6d6" stroke="#0b1220" stroke-width="2"><title>${esc(p.t)} · ${fmt1(p.used_pct)}%</title></circle>`).join('');
+  const labels = points.map((p,i)=>{
+    const t = String(p.t||'').replace('T',' ').slice(5,16);
+    return `<text x="${xAt(i)}" y="${H-8}" text-anchor="middle" fill="#6e7a9a" font-size="10">${esc(t)}</text>`;
+  }).join('');
+  return `<svg class="spark-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <line x1="${pad}" y1="${yAt(0)}" x2="${W-pad}" y2="${yAt(0)}" stroke="#1e2a44"/>
+    <line x1="${pad}" y1="${yAt(maxY*0.5)}" x2="${W-pad}" y2="${yAt(maxY*0.5)}" stroke="#152038" stroke-dasharray="4 4"/>
+    ${hasT?`<path d="${tgtLine}" fill="none" stroke="#ffc940" stroke-width="2" stroke-dasharray="6 4"/>`:''}
+    <path d="${usedLine}" fill="none" stroke="#2ee6d6" stroke-width="2.5"/>
+    ${dots}${labels}
+    <text x="${pad}" y="14" fill="#ffc940" font-size="10" font-weight="700">target</text>
+    <text x="${pad+48}" y="14" fill="#2ee6d6" font-size="10" font-weight="700">used</text>
+  </svg>`;
+}
+
+function cardView(D){
+  const P=D.pace, R=D.reading;
+  document.body.className='cardmode';
+  document.getElementById('app').outerHTML = `<div class="sc">
+    <h1>⏱ <b>Token Pace Gauge</b></h1>
+    <div class="sub" style="color:#b0bcd8;margin-top:6px">Grok Bot weekly pool · straight-line 95% by reset · ${esc(D.window.reset_clock)}</div>
+    <div class="row">
+      <div class="box"><div class="n">${fmt1(R.used_pct)}%</div><div class="l">used now</div></div>
+      <div class="box"><div class="n">${fmt1(P.target_pct)}%</div><div class="l">pace target</div></div>
+      <div class="box"><div class="n" style="color:${P.status==='BEHIND'?'#ff8a7a':P.status==='AHEAD'?'#2fd27a':'#2ee6d6'}">${esc(P.status)}</div><div class="l">gap ${P.gap_pts>0?'+':''}${fmt2(P.gap_pts)} pts</div></div>
+    </div>
+    <div class="ft"><span>Reset window ${esc((D.window.last_reset||'').slice(0,16))} → ${(D.window.next_reset||'').slice(0,16)} ET</span><span>${esc((D.generatedAt||'').replace('T',' ').slice(0,19))} ET</span></div>
+  </div>`;
+}
+
+function render(D){
+  if(q.get('view')==='card') return cardView(D);
+  const P=D.pace, R=D.reading, W=D.window, H=D.history;
+  const stClass = statusClass(P.status);
+  const gapLabel = P.gap_pts > 0
+    ? `${fmt2(P.gap_pts)} pts behind`
+    : (P.gap_pts < 0 ? `${fmt2(Math.abs(P.gap_pts))} pts ahead` : 'on the line');
+
+  const app = document.getElementById('app');
+  app.innerHTML = `
+  <div class="top">
+    <div>
+      <h1>⏱ <b>Token Pace Gauge</b></h1>
+      <p class="sub">Mission dial for Boyd’s Grok Bot weekly pool — burn vs straight-line <b style="color:var(--gold)">95% by reset</b>. Numbers from disk only.</p>
+    </div>
+    <div class="chip ${stClass}" id="statusChip"><span class="dot pulse"></span>${esc(P.status)} · ${esc(gapLabel)}</div>
+  </div>
+
+  <div class="hero">
+    <div class="card">
+      <div class="section-title"><h2>Pool burn dial</h2><span class="tag">${esc(R.label||'Grok Bot weekly')}</span></div>
+      <div class="gauge-wrap">
+        <div id="gauge"></div>
+        <div class="gauge-readout">
+          <div><span class="big" id="usedBig">${fmt1(R.used_pct)}</span><span class="unit">%</span></div>
+          <div class="meta">used · target ring <b style="color:var(--gold)">${fmt1(P.target_pct)}%</b> · cap ${fmt1(P.cap_pct)}%</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title"><h2>Flight board</h2><span class="tag">live ET</span></div>
+      <div class="stats">
+        <div class="stat countdown"><div class="l">Countdown to reset</div><div class="v" id="cd">—</div><div class="h" id="cdSub">next Thu ~7:42 PM ET</div></div>
+        <div class="stat"><div class="l">Week elapsed</div><div class="v">${fmt1(P.week_elapsed_pct)}%</div><div class="h">${fmt1(P.elapsed_hours)}h of ${P.week_hours}h</div></div>
+        <div class="stat"><div class="l">Projected EOW</div><div class="v">${P.projected_eow_pct==null?'—':fmt1(P.projected_eow_pct)+'%'}</div><div class="h">${esc(P.projection_note||'')}</div></div>
+        <div class="stat"><div class="l">Required burn</div><div class="v">${P.required_pts_per_day==null?'—':fmt1(P.required_pts_per_day)+' pts/day'}</div><div class="h">${P.required_pts_per_hour==null?'':fmt2(P.required_pts_per_hour)+' pts/hour to hit 95%'}</div></div>
+        <div class="stat wide"><div class="l">Reading source</div><div class="v" style="font-size:15px;font-weight:700">${esc(R.checked_at||'—')}</div>
+          <div class="h">on-demand: ${esc(R.on_demand||'?')} · Cursor Models ${R.cursor_models_pct??'—'}% · Other ${R.other_models_pct??'—'}% · ${esc(R.account||'')}</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="section-title"><h2>Week timeline · Thu → Thu</h2><span class="tag">${esc(W.reset_clock||'')}</span></div>
+    <div class="timeline">
+      <div class="tl-track">
+        <div class="tl-fill" style="width:${Math.min(100,(W.now_frac||0)*100)}%"></div>
+        <div class="tl-now" style="left:${Math.min(100,(W.now_frac||0)*100)}%" data-label="NOW"></div>
+      </div>
+      <div class="tl-days" id="dayTicks"></div>
+      <div class="tl-marks">
+        <span>↺ ${(W.last_reset||'').replace('T',' ').slice(0,16)} ET</span>
+        <span>next reset ${(W.next_reset||'').replace('T',' ').slice(0,16)} ET</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="section-title"><h2>Burn history</h2><span class="tag">${H.count||0} reading${H.count===1?'':'s'}</span></div>
+      <div class="spark-wrap" id="spark"></div>
+      ${H.note?`<p class="note">⚠ ${esc(H.note)}</p>`:''}
+    </div>
+    <div class="card explainer">
+      <div class="section-title"><h2>${esc(D.explainer.title)}</h2></div>
+      <ul>${(D.explainer.bullets||[]).map(b=>`<li>${esc(b).replace(/target% = \([^)]+\) × 95/, m=>'<code>'+m+'</code>')}</li>`).join('')}</ul>
+      <div class="math-box">
+        target = (hours_since_last_reset / 168) × 95<br>
+        now: (${fmt2(P.elapsed_hours)} / 168) × 95 = <b style="color:var(--gold)">${fmt2(P.target_pct)}%</b><br>
+        used (from usage.json) = <b style="color:var(--cyan)">${fmt1(R.used_pct)}%</b><br>
+        gap = target − used = <b>${fmt2(P.gap_pts)}</b> pts → <b>${esc(P.status)}</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div class="kpi"><div class="n">${fmt1(P.remaining_hours)}h</div><div class="l">hours left in window</div></div>
+    <div class="kpi"><div class="n">${fmt1(P.cap_pct)}%</div><div class="l">pace cap by reset</div></div>
+    <div class="kpi"><div class="n">${esc((W.next_reset||'').slice(0,10))}</div><div class="l">next reset date (ET)</div></div>
+  </div>
+
+  <p class="foot">Token Pace Gauge · offline-capable · port 4273 · generated ${esc((D.generatedAt||'').replace('T',' ').slice(0,19))} ET<br>
+  Source: ${esc(D.sourceFile||'/workspace/tokenmax/usage.json')} · history: ${esc(H.path||'data/history.jsonl')}</p>`;
+
+  // Day ticks
+  const tickBox = document.getElementById('dayTicks');
+  (W.day_ticks||[]).forEach(t=>{
+    if(t.frac < 0 || t.frac > 1) return;
+    const el = document.createElement('div');
+    el.className = 'tl-day';
+    el.style.left = (t.frac*100)+'%';
+    el.innerHTML = `<span></span>${esc(t.label)}`;
+    tickBox.appendChild(el);
+  });
+
+  document.getElementById('spark').innerHTML = sparkSVG(H.points||[], P.target_pct);
+
+  // Animate gauge needle
+  const gauge = document.getElementById('gauge');
+  const targetUsed = Number(R.used_pct)||0;
+  const t0 = performance.now();
+  const dur = 1100;
+  function frame(now){
+    const p = Math.min(1,(now-t0)/dur);
+    const eased = 1 - Math.pow(1-p, 3);
+    const anim = targetUsed * eased;
+    gauge.innerHTML = renderGauge(targetUsed, Number(P.target_pct)||0, anim);
+    if(p<1) requestAnimationFrame(frame);
+    else gauge.innerHTML = renderGauge(targetUsed, Number(P.target_pct)||0, targetUsed);
+  }
+  requestAnimationFrame(frame);
+
+  // Live countdown
+  const next = parseET(W.next_reset);
+  function tick(){
+    const el = document.getElementById('cd');
+    if(!el || !next) return;
+    const parts = countdownParts(next - Date.now());
+    el.textContent = parts.text;
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+load().then(render).catch(e=>{
+  document.getElementById('app').innerHTML = `<div class="card"><h2>Failed to load pace data</h2><p class="note">${esc(e.message)}. Run <code>python3 collect.py</code> then refresh.</p></div>`;
+});
+</script>
+</body>
+</html>

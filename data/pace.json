@@ -12,7 +12,7 @@
     "other_models_pct": 0,
     "monthly_reset": "2026-10-20",
     "on_demand": "disabled",
-    "account": "Christopher Boyd Ultra",
+    "account": "Alex Rivera Ultra",
     "source": "Cursor spending dashboard (hard-reloaded by TokenMax daily-usage-check)",
     "reset_note": "Dashboard Sat Oct 10 ~01:16 PM ET after hard reload: Grok Bot weekly 4% used, Resets Oct 15 (6 days left). Cursor Models 1%, Other Models 0%, monthly reset Oct 20. On-demand disabled. Pace target ~23.5% (24.75% of week since Thu 7:42 PM reset × 95%). Behind by ~19.5 pts."
   },

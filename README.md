@@ -1,6 +1,6 @@
 # Token Pace Gauge
 
-Wall-worthy pacing dial for Boyd’s **Grok Bot weekly included pool**. Shows live burn vs the straight-line **95%-by-reset** target, week timeline (Thu→Thu), burn history, and countdown to the next Thursday ~7:42 PM ET reset.
+Wall-worthy pacing dial for Alex’s **Grok Bot weekly included pool**. Shows live burn vs the straight-line **95%-by-reset** target, week timeline (Thu→Thu), burn history, and countdown to the next Thursday ~7:42 PM ET reset.
 
 ## Quick start
 
@@ -44,6 +44,6 @@ Python 3 stdlib only. No npm, no CDN, no network at runtime. Does not enable on-
 
 ---
 ## Repo notes
-- **Built:** Oct 2026 (TokenMax build week; see SHORTLIST/ledger), by TokenMax (Boyd's Grok Bot) on the Grok Bot box.
+- **Built:** Oct 2026 (TokenMax build week; see SHORTLIST/ledger), by TokenMax (Alex's Grok Bot) on the Grok Bot box.
 - **Run:** `./run.sh` (then open the localhost URL it prints).
 - Imported from `/workspace/tokenmax/token-pace` on Oct 23, 2026. node_modules, virtualenvs, logs and files over 20 MB were left out.
